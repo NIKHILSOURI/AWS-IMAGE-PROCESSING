@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image Processor | Serverless AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #0071e3;
+      --primary-hover: #0077ed;
+      --primary-light: #e8f4fd;
+      --text-primary: #1d1d1f;
+      --text-secondary: #86868b;
+      --bg-primary: #ffffff;
+      --bg-secondary: #f5f5f7;
+      --bg-tertiary: #fafafa;
+      --border: #d2d2d7;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+      --radius: 12px;
+      --radius-lg: 18px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(180deg, #f5f5f7 0%, #ffffff 100%);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 64px;
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    .header h1 {
+      font-size: 56px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #1d1d1f 0%, #424245 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      font-size: 21px;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+
+    .workflow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      animation: fadeInUp 0.6s ease-out;
+      animation-fill-mode: both;
+    }
+
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .card h2 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .file-upload-wrapper {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .file-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 48px 24px;
+      text-align: center;
+      background: var(--bg-tertiary);
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .file-upload-area:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .file-upload-area.dragover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      transform: scale(1.02);
+    }
+
+    #fileInput {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+    }
+
+    .file-upload-text {
+      font-size: 16px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .file-upload-text strong {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 16px;
+      font-family: inherit;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: var(--transition);
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%231d1d1f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      padding-right: 40px;
+    }
+
+    select:focus, input[type="number"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--primary-light);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius);
+      margin-bottom: 24px;
+    }
+
+    #runRekognition {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    .checkbox-group label {
+      margin: 0;
+      cursor: pointer;
+      font-size: 15px;
+      color: var(--text-primary);
+    }
+
+    #processBtn {
+      width: 100%;
+      padding: 16px 32px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+      letter-spacing: -0.01em;
+      box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+    }
+
+    #processBtn:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 113, 227, 0.4);
+    }
+
+    #processBtn:active {
+      transform: translateY(0);
+    }
+
+    #processBtn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .result-card {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      box-shadow: var(--shadow-md);
+      margin-top: 40px;
+      animation: fadeInUp 0.6s ease-out 0.4s both;
+    }
+
+    #status {
+      font-size: 16px;
+      font-weight: 500;
+      padding: 16px 20px;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius);
+      margin-bottom: 32px;
+      color: var(--text-primary);
+      min-height: 24px;
+    }
+
+    #status:empty {
+      display: none;
+    }
+
+    #outputImage {
+      width: 100%;
+      max-width: 100%;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      margin-bottom: 32px;
+      display: block;
+      transition: var(--transition);
+    }
+
+    #outputImage:hover {
+      transform: scale(1.01);
+      box-shadow: var(--shadow-lg);
+    }
+
+    #outputImage:not([src]), #outputImage[src=""] {
+      display: none;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    #labelsList {
+      list-style: none;
+      margin-bottom: 32px;
+    }
+
+    #labelsList li {
+      padding: 12px 16px;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+      font-size: 15px;
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: var(--transition);
+    }
+
+    #labelsList li:hover {
+      background: var(--primary-light);
+      transform: translateX(4px);
+    }
+
+    #labelsList:empty {
+      display: none;
+    }
+
+    #labelsList:empty + .section-title {
+      display: none;
+    }
+
+    #rawJson {
+      background: #1d1d1f;
+      color: #f5f5f7;
+      padding: 24px;
+      border-radius: var(--radius);
+      overflow: auto;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      max-height: 400px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    #rawJson:empty {
+      display: none;
+    }
+
+    #rawJson:empty + .section-title {
+      display: none;
+    }
+
+    .json-section {
+      margin-top: 32px;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 40px 16px;
+      }
+
+      .header h1 {
+        font-size: 40px;
+      }
+
+      .header p {
+        font-size: 18px;
+      }
+
+      .workflow {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 24px;
+      }
+    }
+
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Image Processor</h1>
+      <p>Serverless AI-powered image processing with AWS Lambda, S3 & Rekognition</p>
+    </div>
+
+    <div class="workflow">
+      <div class="card">
+        <h2>1. Choose an image</h2>
+        <div class="file-upload-wrapper">
+          <div class="file-upload-area" id="fileUploadArea">
+            <div class="file-upload-text">
+              <strong>Click to upload</strong> or drag and drop
+            </div>
+            <input type="file" id="fileInput" accept="image/*">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2. Choose operation</h2>
+        <div class="form-group">
+          <label for="operation">Operation</label>
+          <select id="operation">
+            <option value="labels">Labels only (Rekognition)</option>
+            <option value="grayscale">Grayscale</option>
+            <option value="resize">Resize</option>
+            <option value="thumbnail">Thumbnail</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="width">Width (for resize/thumbnail)</label>
+          <input type="number" id="width" placeholder="e.g. 800">
+        </div>
+
+        <div class="form-group">
+          <label for="height">Height (for resize/thumbnail)</label>
+          <input type="number" id="height" placeholder="e.g. 600">
+        </div>
+
+        <div class="checkbox-group">
+          <input type="checkbox" id="runRekognition" checked>
+          <label for="runRekognition">Also run Rekognition on processed image</label>
+        </div>
+
+        <button id="processBtn">3. Upload & Process</button>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <h2>Result</h2>
+      <p id="status"></p>
+      <img id="outputImage" src="" alt="Processed output will appear here">
+      <h3 class="section-title">Labels</h3>
+      <ul id="labelsList"></ul>
+      <div class="json-section">
+        <h3 class="section-title">Raw JSON response</h3>
+        <pre id="rawJson"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const apiUrl = "https://456uqhtma1.execute-api.us-east-1.amazonaws.com/process"; // <- change if needed
+
+    const fileInput = document.getElementById('fileInput');
+    const processBtn = document.getElementById('processBtn');
+    const statusEl = document.getElementById('status');
+    const outputImage = document.getElementById('outputImage');
+    const labelsList = document.getElementById('labelsList');
+    const rawJson = document.getElementById('rawJson');
+    const fileUploadArea = document.getElementById('fileUploadArea');
+
+    // Drag and drop functionality
+    fileUploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      fileUploadArea.classList.add('dragover');
+    });
+
+    fileUploadArea.addEventListener('dragleave', () => {
+      fileUploadArea.classList.remove('dragover');
+    });
+
+    fileUploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fileUploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0 && files[0].type.startsWith('image/')) {
+        fileInput.files = files;
+        updateFileUploadText(files[0].name);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        updateFileUploadText(e.target.files[0].name);
+      }
+    });
+
+    function updateFileUploadText(fileName) {
+      const uploadText = fileUploadArea.querySelector('.file-upload-text');
+      uploadText.innerHTML = `<strong>${fileName}</strong>`;
+    }
+
+    processBtn.addEventListener('click', async () => {
+      statusEl.textContent = "";
+      labelsList.innerHTML = "";
+      outputImage.src = "";
+      rawJson.textContent = "";
+
+      const file = fileInput.files[0];
+      if (!file) {
+        statusEl.textContent = "Please choose an image file first.";
+        statusEl.style.background = '#ffebee';
+        statusEl.style.color = '#c62828';
+        return;
+      }
+
+      const operation = document.getElementById('operation').value;
+      const widthVal = document.getElementById('width').value;
+      const heightVal = document.getElementById('height').value;
+      const runRekognition = document.getElementById('runRekognition').checked;
+
+      // Read file as base64
+      const fileBase64 = await fileToBase64(file);
+
+      const payload = {
+        imageBase64: fileBase64.split(",")[1], // remove "data:image/...;base64," prefix
+        operation: operation,
+        runRekognition: runRekognition
+      };
+
+      if (widthVal) payload.width = parseInt(widthVal);
+      if (heightVal) payload.height = parseInt(heightVal);
+
+      statusEl.textContent = '<span class="loading"></span>Uploading and processing...';
+      statusEl.style.background = 'var(--primary-light)';
+      statusEl.style.color = 'var(--primary)';
+      processBtn.disabled = true;
+      processBtn.textContent = 'Processing...';
+
+      try {
+        const resp = await fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const text = await resp.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          statusEl.textContent = "Error: Could not parse JSON response.";
+          statusEl.style.background = '#ffebee';
+          statusEl.style.color = '#c62828';
+          rawJson.textContent = text;
+          processBtn.disabled = false;
+          processBtn.textContent = '3. Upload & Process';
+          return;
+        }
+
+        if (!resp.ok) {
+          statusEl.textContent = "Error from server: " + (data.error || resp.status);
+          statusEl.style.background = '#ffebee';
+          statusEl.style.color = '#c62828';
+          rawJson.textContent = JSON.stringify(data, null, 2);
+          processBtn.disabled = false;
+          processBtn.textContent = '3. Upload & Process';
+          return;
+        }
+
+        statusEl.textContent = "✓ Success! Processing time: " +
+          Math.round(data.processing_time_ms) + " ms";
+        statusEl.style.background = '#e8f5e9';
+        statusEl.style.color = '#2e7d32';
+
+        rawJson.textContent = JSON.stringify(data, null, 2);
+
+        // Show processed image
+        if (data.output_image_base64) {
+          outputImage.src = "data:image/png;base64," + data.output_image_base64;
+          outputImage.style.display = 'block';
+        }
+
+        // Show labels
+        labelsList.innerHTML = "";
+        if (Array.isArray(data.labels)) {
+          data.labels.forEach(lab => {
+            const li = document.createElement('li');
+            const confidence = lab.Confidence.toFixed(1);
+            li.innerHTML = `<span>${lab.Name}</span><span style="color: var(--text-secondary); font-weight: 500;">${confidence}%</span>`;
+            labelsList.appendChild(li);
+          });
+        }
+
+        processBtn.disabled = false;
+        processBtn.textContent = '3. Upload & Process';
+
+        // Smooth scroll to results
+        document.querySelector('.result-card').scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'nearest' 
+        });
+
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Request failed: " + err.message;
+        statusEl.style.background = '#ffebee';
+        statusEl.style.color = '#c62828';
+        processBtn.disabled = false;
+        processBtn.textContent = '3. Upload & Process';
+      }
+    });
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+  </script>
+</body>
+</html>
